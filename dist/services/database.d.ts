@@ -51,6 +51,62 @@ export declare class DatabaseService {
         value: string;
     }>>;
     static clearAuthData(sessionId: string): Promise<void>;
+    static getConnectedSessions(): Promise<{
+        sessionId: string;
+        id: number;
+        status: string;
+        createdAt: Date;
+        updatedAt: Date;
+    }[]>;
+    static getAllSessions(): Promise<{
+        sessionId: string;
+        id: number;
+        status: string;
+        createdAt: Date;
+        updatedAt: Date;
+    }[]>;
+    static getSessionById(sessionId: string): Promise<{
+        sessionId: string;
+        id: number;
+        status: string;
+        createdAt: Date;
+        updatedAt: Date;
+    } | null>;
+    static getSessionUserInfo(sessionId: string): Promise<{
+        phoneNumber: null;
+        name: null;
+        jid: null;
+        platform: null;
+        registered: null;
+    } | null>;
+    static getConnectedSessionsWithUserInfo(): Promise<{
+        userInfo: {
+            phoneNumber: null;
+            name: null;
+            jid: null;
+            platform: null;
+            registered: null;
+        } | null;
+        sessionId: string;
+        id: number;
+        status: string;
+        createdAt: Date;
+        updatedAt: Date;
+    }[]>;
+    static getAllSessionsWithUserInfo(): Promise<{
+        userInfo: {
+            phoneNumber: null;
+            name: null;
+            jid: null;
+            platform: null;
+            registered: null;
+        } | null;
+        sessionId: string;
+        id: number;
+        status: string;
+        createdAt: Date;
+        updatedAt: Date;
+    }[]>;
     static disconnect(): Promise<void>;
 }
 //# sourceMappingURL=database.d.ts.map

@@ -188,6 +188,182 @@ class DatabaseService {
             console.error('Error clearing auth data:', error);
         }
     }
+    static async getConnectedSessions() {
+        try {
+            const connectedSessions = await exports.prisma.whatsappSession.findMany({
+                where: {
+                    OR: [
+                        { status: 'connected' },
+                        { status: 'authenticated' },
+                    ]
+                },
+                select: {
+                    id: true,
+                    sessionId: true,
+                    status: true,
+                    createdAt: true,
+                    updatedAt: true,
+                },
+                orderBy: {
+                    updatedAt: 'desc'
+                }
+            });
+            return connectedSessions;
+        }
+        catch (error) {
+            console.error('Error getting connected sessions:', error);
+            return [];
+        }
+    }
+    static async getAllSessions() {
+        try {
+            const sessions = await exports.prisma.whatsappSession.findMany({
+                select: {
+                    id: true,
+                    sessionId: true,
+                    status: true,
+                    createdAt: true,
+                    updatedAt: true,
+                },
+                orderBy: {
+                    updatedAt: 'desc'
+                }
+            });
+            return sessions;
+        }
+        catch (error) {
+            console.error('Error getting all sessions:', error);
+            return [];
+        }
+    }
+    static async getSessionById(sessionId) {
+        try {
+            const session = await exports.prisma.whatsappSession.findUnique({
+                where: { sessionId },
+                select: {
+                    id: true,
+                    sessionId: true,
+                    status: true,
+                    createdAt: true,
+                    updatedAt: true,
+                }
+            });
+            return session;
+        }
+        catch (error) {
+            console.error('Error getting session by ID:', error);
+            return null;
+        }
+    }
+    static async getSessionUserInfo(sessionId) {
+        try {
+            const credsData = await exports.prisma.authData.findUnique({
+                where: {
+                    sessionId_key: {
+                        sessionId,
+                        key: 'creds.json'
+                    }
+                },
+                select: {
+                    value: true
+                }
+            });
+            if (!credsData) {
+                return null;
+            }
+            const creds = JSON.parse(credsData.value);
+            const userInfo = {
+                phoneNumber: null,
+                name: null,
+                jid: null,
+                platform: null,
+                registered: null
+            };
+            if (creds.me) {
+                userInfo.jid = creds.me.id;
+                userInfo.name = creds.me.name;
+                if (creds.me.id) {
+                    const phoneMatch = creds.me.id.match(/^(\d+):/);
+                    if (phoneMatch) {
+                        userInfo.phoneNumber = phoneMatch[1];
+                    }
+                }
+            }
+            if (creds.platform) {
+                userInfo.platform = creds.platform;
+            }
+            if (creds.registered !== undefined) {
+                userInfo.registered = creds.registered;
+            }
+            return userInfo;
+        }
+        catch (error) {
+            console.error('Error getting session user info:', error);
+            return null;
+        }
+    }
+    static async getConnectedSessionsWithUserInfo() {
+        try {
+            const connectedSessions = await exports.prisma.whatsappSession.findMany({
+                where: {
+                    OR: [
+                        { status: 'connected' },
+                        { status: 'authenticated' },
+                    ]
+                },
+                select: {
+                    id: true,
+                    sessionId: true,
+                    status: true,
+                    createdAt: true,
+                    updatedAt: true,
+                },
+                orderBy: {
+                    updatedAt: 'desc'
+                }
+            });
+            const sessionsWithUserInfo = await Promise.all(connectedSessions.map(async (session) => {
+                const userInfo = await this.getSessionUserInfo(session.sessionId);
+                return {
+                    ...session,
+                    userInfo
+                };
+            }));
+            return sessionsWithUserInfo;
+        }
+        catch (error) {
+            console.error('Error getting connected sessions with user info:', error);
+            return [];
+        }
+    }
+    static async getAllSessionsWithUserInfo() {
+        try {
+            const sessions = await exports.prisma.whatsappSession.findMany({
+                select: {
+                    id: true,
+                    sessionId: true,
+                    status: true,
+                    createdAt: true,
+                    updatedAt: true,
+                },
+                orderBy: {
+                    updatedAt: 'desc'
+                }
+            });
+            const sessionsWithUserInfo = await Promise.all(sessions.map(async (session) => {
+                const userInfo = await this.getSessionUserInfo(session.sessionId);
+                return {
+                    ...session,
+                    userInfo
+                };
+            }));
+            return sessionsWithUserInfo;
+        }
+        catch (error) {
+            console.error('Error getting all sessions with user info:', error);
+            return [];
+        }
+    }
     static async disconnect() {
         await exports.prisma.$disconnect();
     }

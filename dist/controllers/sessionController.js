@@ -212,4 +212,160 @@ SessionController.getSessionsHistory = (0, middleware_1.asyncHandler)(async (req
         });
     }
 });
+SessionController.getConnectedSessions = (0, middleware_1.asyncHandler)(async (req, res) => {
+    try {
+        const connectedSessions = await services_1.DatabaseService.getConnectedSessions();
+        const activeSessions = services_1.WhatsAppService.getSessions();
+        const enhancedSessions = connectedSessions.map(session => {
+            const runtimeSession = activeSessions.get(session.sessionId);
+            return {
+                ...session,
+                isActive: !!runtimeSession,
+                isAuthenticated: runtimeSession?.isAuthenticated || false,
+                startTime: runtimeSession?.startTime || null,
+                connectionStatus: runtimeSession ? (0, utils_1.getSessionStatus)(session.sessionId, activeSessions) : 'DISCONNECTED'
+            };
+        });
+        res.json({
+            success: true,
+            message: 'Connected sessions retrieved successfully',
+            data: enhancedSessions,
+            count: enhancedSessions.length
+        });
+    }
+    catch (error) {
+        console.error('Error fetching connected sessions:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch connected sessions',
+            error: error.message
+        });
+    }
+});
+SessionController.getAllSessions = (0, middleware_1.asyncHandler)(async (req, res) => {
+    try {
+        const allSessions = await services_1.DatabaseService.getAllSessions();
+        const activeSessions = services_1.WhatsAppService.getSessions();
+        const enhancedSessions = allSessions.map(session => {
+            const runtimeSession = activeSessions.get(session.sessionId);
+            return {
+                ...session,
+                isActive: !!runtimeSession,
+                isAuthenticated: runtimeSession?.isAuthenticated || false,
+                startTime: runtimeSession?.startTime || null,
+                connectionStatus: runtimeSession ? (0, utils_1.getSessionStatus)(session.sessionId, activeSessions) : 'DISCONNECTED'
+            };
+        });
+        res.json({
+            success: true,
+            message: 'All sessions retrieved successfully',
+            data: enhancedSessions,
+            count: enhancedSessions.length
+        });
+    }
+    catch (error) {
+        console.error('Error fetching all sessions:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch all sessions',
+            error: error.message
+        });
+    }
+});
+SessionController.getConnectedSessionsWithCredentials = (0, middleware_1.asyncHandler)(async (req, res) => {
+    try {
+        const connectedSessions = await services_1.DatabaseService.getConnectedSessionsWithUserInfo();
+        const activeSessions = services_1.WhatsAppService.getSessions();
+        const enhancedSessions = connectedSessions.map(session => {
+            const runtimeSession = activeSessions.get(session.sessionId);
+            return {
+                ...session,
+                isActive: !!runtimeSession,
+                isAuthenticated: runtimeSession?.isAuthenticated || false,
+                startTime: runtimeSession?.startTime || null,
+                connectionStatus: runtimeSession ? (0, utils_1.getSessionStatus)(session.sessionId, activeSessions) : 'DISCONNECTED'
+            };
+        });
+        res.json({
+            success: true,
+            message: 'Connected sessions with credentials retrieved successfully',
+            data: enhancedSessions,
+            count: enhancedSessions.length
+        });
+    }
+    catch (error) {
+        console.error('Error fetching connected sessions with credentials:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch connected sessions with credentials',
+            error: error.message
+        });
+    }
+});
+SessionController.getAllSessionsWithCredentials = (0, middleware_1.asyncHandler)(async (req, res) => {
+    try {
+        const allSessions = await services_1.DatabaseService.getAllSessionsWithUserInfo();
+        const activeSessions = services_1.WhatsAppService.getSessions();
+        const enhancedSessions = allSessions.map(session => {
+            const runtimeSession = activeSessions.get(session.sessionId);
+            return {
+                ...session,
+                isActive: !!runtimeSession,
+                isAuthenticated: runtimeSession?.isAuthenticated || false,
+                startTime: runtimeSession?.startTime || null,
+                connectionStatus: runtimeSession ? (0, utils_1.getSessionStatus)(session.sessionId, activeSessions) : 'DISCONNECTED'
+            };
+        });
+        res.json({
+            success: true,
+            message: 'All sessions with credentials retrieved successfully',
+            data: enhancedSessions,
+            count: enhancedSessions.length
+        });
+    }
+    catch (error) {
+        console.error('Error fetching all sessions with credentials:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch all sessions with credentials',
+            error: error.message
+        });
+    }
+});
+SessionController.getSessionCredentials = (0, middleware_1.asyncHandler)(async (req, res) => {
+    const { sessionId } = req.params;
+    try {
+        const session = await services_1.DatabaseService.getSessionById(sessionId);
+        if (!session) {
+            return res.status(404).json({
+                success: false,
+                message: 'Session not found'
+            });
+        }
+        const userInfo = await services_1.DatabaseService.getSessionUserInfo(sessionId);
+        const activeSessions = services_1.WhatsAppService.getSessions();
+        const runtimeSession = activeSessions.get(sessionId);
+        const sessionWithCredentials = {
+            ...session,
+            userInfo,
+            isActive: !!runtimeSession,
+            isAuthenticated: runtimeSession?.isAuthenticated || false,
+            startTime: runtimeSession?.startTime || null,
+            connectionStatus: runtimeSession ? (0, utils_1.getSessionStatus)(sessionId, activeSessions) : 'DISCONNECTED'
+        };
+        res.json({
+            success: true,
+            message: 'Session credentials retrieved successfully',
+            data: sessionWithCredentials
+        });
+    }
+    catch (error) {
+        console.error('Error fetching session credentials:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch session credentials',
+            error: error.message
+        });
+    }
+});
 //# sourceMappingURL=sessionController.js.map
